@@ -9,7 +9,6 @@ return {
     },
   },
   {
-    -- See https://codecompanion.olimorris.dev/ for details
     "olimorris/codecompanion.nvim",
     dependencies = {
       "nvim-lua/plenary.nvim",
@@ -17,45 +16,70 @@ return {
     },
     opts = {
       adapters = {
-        gemini = function()
-          return require("codecompanion.adapters").extend("gemini", {
-            env = {
-              api_key = os.getenv "GEMINI_API_KEY",
-            },
-            schema = {
-              model = {
-                default = (os.getenv "GEMINI_MODEL" or "gemini-2.5-flash"),
+        http = {
+          gemini = function()
+            return require("codecompanion.adapters").extend("gemini", {
+              env = {
+                api_key = os.getenv "GEMINI_API_KEY",
               },
-            },
-          })
-        end,
+              schema = {
+                model = {
+                  default = (os.getenv "GEMINI_MODEL" or "gemini-2.5-flash"),
+                },
+              },
+            })
+          end,
+        },
+        acp = {
+          gemini_cli = function()
+            return require("codecompanion.adapters").extend("gemini_cli", {
+              commands = {
+                default = {
+                  "gemini",
+                  "--experimental-acp",
+                },
+              },
+              defaults = {
+                auth_method = "gemini-api-key",
+                timeout = 20000, -- 20 seconds
+              },
+              env = {
+                GEMINI_API_KEY = "GEMINI_API_KEY",
+              },
+            })
+          end,
+        },
       },
-      interactions = {
+      strategies = {
+        chat = { adapter = "gemini_cli" },
+        inline = { adapter = "gemini" },
+        agent = { adapter = "gemini_cli" },
+      },
+      display = {
         chat = {
-          adapter = "gemini",
-          model = os.getenv "GEMINI_MODEL" or "gemini-2.5-flash",
+          window = {
+            layout = "vertical",
+            position = "right",
+            width = 0.4,
+          },
+          show_settings = true,
+          show_token_count = true,
         },
-        inline = {
-          adapter = "gemini",
-          model = os.getenv "GEMINI_MODEL" or "gemini-2.5-flash",
-        },
-        cmd = {
-          adapter = "gemini",
-          model = os.getenv "GEMINI_MODEL" or "gemini-2.5-flash",
-        },
-        -- background = {
-        --   adapter = "gemini",
-        --   model = os.getenv "GEMINI_MODEL" or "gemini-2.5-flash",
-        -- },
       },
     },
     keys = {
-      -- Open a chat window
-      { "<leader>ac", "<cmd>CodeCompanionChat<cr>", desc = "CodeCompanion Chat" },
-      -- Show actions
+      { "<leader>ac", "<cmd>CodeCompanionChat Toggle<cr>", desc = "CodeCompanion Chat" },
       { "<leader>aa", "<cmd>CodeCompanionActions<cr>", desc = "CodeCompanion Actions" },
-      -- Apply inline fix/generation (visual mode)
       { "<leader>ac", ":<C-u>CodeCompanion", mode = { "v" }, desc = "CodeCompanion" },
+    },
+  },
+  {
+    "MeanderingProgrammer/render-markdown.nvim",
+    dependencies = { "nvim-treesitter/nvim-treesitter" },
+    ft = { "markdown", "codecompanion" },
+    opts = {
+      render_modes = { "n", "c", "t" },
+      file_types = { "markdown", "codecompanion" },
     },
   },
 }
